@@ -142,11 +142,15 @@ void TIM3_Out_Init(void)
 void TIM3_Out_Freq_Generation(unsigned short freq)
 {
 	// Timer 주파수가 TIM3_FREQ가 되도록 PSC 설정
+	TIM3->PSC = (unsigned int)(TIMXCLK/(double)TIM3_FREQ + 0.5)-1;
 	// 요청한 주파수가 되도록 ARR 설정
+	TIM3->ARR = TIM3_FREQ/freq -1;
 	// Duty Rate 50%가 되도록 CCR3 설정
+	TIM3->CCR3 = TIM3->ARR/2;
 	// Manual Update(UG 발생)
+	Macro_Set_Bit(TIM3->EGR,0);
 	// Down Counter, Repeat Mode, Timer Start
-
+	TIM3->CR1 = (1<<4)|(0<<3)|(1<<0);
 }
 
 void TIM3_Out_Stop(void)

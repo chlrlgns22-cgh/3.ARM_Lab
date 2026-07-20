@@ -54,26 +54,26 @@ void Main(void)
 }
 #endif
 
-/* =========================================================================
- * 과제 A : 정밀 속도 조절 및 디버깅 기능이 추가된 핑퐁
- *
- * LED1=PA5(기존 LED_Init/On/Off), LED2=PA6, LED3=PA7(Open-Drain, 이 블록 안에서 직접 설정)
- * Timer/UART 인터럽트를 아직 배우지 않았으므로, 짧은 주기(quantum)로
- * SysTick busy-wait 를 반복하면서 그 안에서 UART 입력 체크 + 경과시간
- * 누적을 함께 처리하는 방식으로 "인터럽트 없는 논블로킹 스테이트머신"을 구현함.
- * ========================================================================= */
-#if 1
+
+#if 0
 void Main(void)
 {
 	Sys_Init(115200);
 
 	// LED2, LED3 : PA6, PA7 => Output, Open-Drain
 	Macro_Set_Bit(RCC->AHB1ENR, 0);
-	Macro_Write_Block(GPIOA->MODER, 0xf, 0x5, 12);
+	
+	Macro_Write_Block(GPIOC->MODER,0x3,0x0,14);
+	Macro_Write_Block(GPIOC->PUPDR,0x3,0x1,14);
+	Macro_Write_Block(GPIOA->MODER, 0x3, 0x1, 10);
+	Macro_Set_Bit(GPIOA->OTYPER, 5);
+	Macro_Set_Bit(GPIOA->ODR, 5);
+	Macro_Write_Block(GPIOA->MODER, 0x3, 0x1, 12);
 	Macro_Set_Bit(GPIOA->OTYPER, 6);
+	Macro_Set_Bit(GPIOA->ODR, 6);
+	Macro_Write_Block(GPIOA->MODER, 0x3, 0x1, 14);
 	Macro_Set_Bit(GPIOA->OTYPER, 7);
-	Macro_Clear_Bit(GPIOA->ODR, 6);
-	Macro_Clear_Bit(GPIOA->ODR, 7);
+	Macro_Set_Bit(GPIOA->ODR, 7);
 
 	printf("\n[Ping-Pong LED Test]\n");
 	printf("u:speed up  d:slow down  s:pause/resume\n");
@@ -122,9 +122,9 @@ void Main(void)
 				elapsed = 0;
 
 				// idx 번째 LED Off
-				if(idx == 0)      Macro_Clear_Bit(GPIOA->ODR, 5);
-				else if(idx == 1) Macro_Clear_Bit(GPIOA->ODR, 6);
-				else if(idx == 2) Macro_Clear_Bit(GPIOA->ODR, 7);
+				if(idx == 0)      Macro_Set_Bit(GPIOA->ODR, 5);
+				else if(idx == 1) Macro_Set_Bit(GPIOA->ODR, 6);
+				else if(idx == 2) Macro_Set_Bit(GPIOA->ODR, 7);
 
 				idx += dir;
 
@@ -142,9 +142,9 @@ void Main(void)
 				}
 
 				// idx 번째 LED On
-				if(idx == 0)      Macro_Set_Bit(GPIOA->ODR, 5);
-				else if(idx == 1) Macro_Set_Bit(GPIOA->ODR, 6);
-				else if(idx == 2) Macro_Set_Bit(GPIOA->ODR, 7);
+				if(idx == 0)      Macro_Clear_Bit(GPIOA->ODR, 5);
+				else if(idx == 1) Macro_Clear_Bit(GPIOA->ODR, 6);
+				else if(idx == 2) Macro_Clear_Bit(GPIOA->ODR, 7);
 			}
 		}
 
@@ -159,11 +159,6 @@ void Main(void)
 }
 #endif
 
-/* =========================================================================
- * 과제 B : 타이핑 타임 어택 게임 (Reaction Time Test)
- * LED1=PA5, LED2=PA6, LED3=PA7(Open-Drain)
- * Key1=PC13(기존 Key_Get_Pressed, 시작 버튼), Key2=PC7(Pull-up, 반응 버튼)
- * ========================================================================= */
 #if 0
 void Main(void)
 {
@@ -171,11 +166,15 @@ void Main(void)
 
 	// LED2, LED3 : PA6, PA7 => Output, Open-Drain
 	Macro_Set_Bit(RCC->AHB1ENR, 0);
-	Macro_Write_Block(GPIOA->MODER, 0xf, 0x5, 12);
+	Macro_Write_Block(GPIOA->MODER, 0x3, 0x1, 10);
+	Macro_Set_Bit(GPIOA->OTYPER, 5);
+	Macro_Set_Bit(GPIOA->ODR, 5);
+	Macro_Write_Block(GPIOA->MODER, 0x3, 0x1, 12);
 	Macro_Set_Bit(GPIOA->OTYPER, 6);
+	Macro_Set_Bit(GPIOA->ODR, 6);
+	Macro_Write_Block(GPIOA->MODER, 0x3, 0x1, 14);
 	Macro_Set_Bit(GPIOA->OTYPER, 7);
-	Macro_Clear_Bit(GPIOA->ODR, 6);
-	Macro_Clear_Bit(GPIOA->ODR, 7);
+	Macro_Set_Bit(GPIOA->ODR, 7);
 
 	// Key2 : PC7 => Input, Pull-Up  (0901.KEY_IN_LAB 참고)
 	Macro_Set_Bit(RCC->AHB1ENR, 2);
@@ -198,15 +197,15 @@ void Main(void)
 
 			if(blink)
 			{
-				Macro_Set_Bit(GPIOA->ODR, 5);
-				Macro_Set_Bit(GPIOA->ODR, 6);
-				Macro_Set_Bit(GPIOA->ODR, 7);
-			}
-			else
-			{
 				Macro_Clear_Bit(GPIOA->ODR, 5);
 				Macro_Clear_Bit(GPIOA->ODR, 6);
 				Macro_Clear_Bit(GPIOA->ODR, 7);
+			}
+			else
+			{
+				Macro_Set_Bit(GPIOA->ODR, 5);
+				Macro_Set_Bit(GPIOA->ODR, 6);
+				Macro_Set_Bit(GPIOA->ODR, 7);
 			}
 
 			// 300ms busy-wait
@@ -222,9 +221,9 @@ void Main(void)
 
 		while(Key_Get_Pressed()); // 키 릴리즈 대기 (디바운스)
 
-		Macro_Clear_Bit(GPIOA->ODR, 5);
-		Macro_Clear_Bit(GPIOA->ODR, 6);
-		Macro_Clear_Bit(GPIOA->ODR, 7);
+		Macro_Set_Bit(GPIOA->ODR, 5);
+		Macro_Set_Bit(GPIOA->ODR, 6);
+		Macro_Set_Bit(GPIOA->ODR, 7);
 
 		int wait_ms = 1500 + (int)(seed % 2500u); // 1.5 ~ 4.0초 랜덤 대기
 		int foul = 0;
@@ -255,9 +254,9 @@ void Main(void)
 		}
 
 		printf("PRESS KEY NOW!\n");
-		Macro_Set_Bit(GPIOA->ODR, 5);
-		Macro_Set_Bit(GPIOA->ODR, 6);
-		Macro_Set_Bit(GPIOA->ODR, 7);
+		Macro_Clear_Bit(GPIOA->ODR, 5);
+		Macro_Clear_Bit(GPIOA->ODR, 6);
+		Macro_Clear_Bit(GPIOA->ODR, 7);
 
 		SysTick->CTRL = 0;
 		SysTick->LOAD = 0x00FFFFFF;   // 최대 약 1.4초까지 측정 (96MHz/8 기준)
@@ -274,36 +273,33 @@ void Main(void)
 
 		while(Macro_Check_Bit_Clear(GPIOC->IDR, 7));
 
-		Macro_Clear_Bit(GPIOA->ODR, 5);
-		Macro_Clear_Bit(GPIOA->ODR, 6);
-		Macro_Clear_Bit(GPIOA->ODR, 7);
+		Macro_Set_Bit(GPIOA->ODR, 5);
+		Macro_Set_Bit(GPIOA->ODR, 6);
+		Macro_Set_Bit(GPIOA->ODR, 7);
 	}
 }
 #endif
 
-/* =========================================================================
- * 과제 C : UART CLI (Command Line Interface) 컨트롤러
- * LED1=PA5, LED2=PA6, LED3=PA7(Open-Drain)
- * Key1=PC13(기존 Key_Get_Pressed), Key2=PC7(Pull-up)
- * help / led on [n] / led off [n] / status / timer [sec]
- * ========================================================================= */
-#if 0
+#if 1
 void Main(void)
 {
 	Sys_Init(115200);
 
 	// LED2, LED3 : PA6, PA7 => Output, Open-Drain
-	Macro_Set_Bit(RCC->AHB1ENR, 0);
-	Macro_Write_Block(GPIOA->MODER, 0xf, 0x5, 12);
+	Macro_Write_Block(GPIOC->MODER,0x3,0x0,14);
+	Macro_Write_Block(GPIOC->PUPDR,0x3,0x1,14);
+	Macro_Write_Block(GPIOA->MODER, 0x3, 0x1, 10);
+	Macro_Set_Bit(GPIOA->OTYPER, 5);
+	Macro_Set_Bit(GPIOA->ODR, 5);
+	Macro_Write_Block(GPIOA->MODER, 0x3, 0x1, 12);
 	Macro_Set_Bit(GPIOA->OTYPER, 6);
+	Macro_Set_Bit(GPIOA->ODR, 6);
+	Macro_Write_Block(GPIOA->MODER, 0x3, 0x1, 14);
 	Macro_Set_Bit(GPIOA->OTYPER, 7);
-	Macro_Clear_Bit(GPIOA->ODR, 6);
-	Macro_Clear_Bit(GPIOA->ODR, 7);
+	Macro_Set_Bit(GPIOA->ODR, 7);
 
 	// Key2 : PC7 => Input, Pull-Up
 	Macro_Set_Bit(RCC->AHB1ENR, 2);
-	Macro_Write_Block(GPIOC->MODER, 0x3, 0x0, 14);
-	Macro_Write_Block(GPIOC->PUPDR, 0x3, 0x1, 14);
 
 	printf("\n[UART CLI Controller]\n");
 	printf("Type 'help' for command list.\n> ");
@@ -363,18 +359,18 @@ void Main(void)
 
 					if(n == 3 && strcmp(cmd1, "led") == 0 && strcmp(cmd2, "on") == 0 && num >= 1 && num <= 3)
 					{
-						if(num == 1)      Macro_Set_Bit(GPIOA->ODR, 5);
-						else if(num == 2) Macro_Set_Bit(GPIOA->ODR, 6);
-						else if(num == 3) Macro_Set_Bit(GPIOA->ODR, 7);
+						if(num == 1)      Macro_Clear_Bit(GPIOA->ODR, 5);
+						else if(num == 2) Macro_Clear_Bit(GPIOA->ODR, 6);
+						else if(num == 3) Macro_Clear_Bit(GPIOA->ODR, 7);
 
 						led_state[num - 1] = 1;
 						printf("LED%d ON\n", num);
 					}
 					else if(n == 3 && strcmp(cmd1, "led") == 0 && strcmp(cmd2, "off") == 0 && num >= 1 && num <= 3)
 					{
-						if(num == 1)      Macro_Clear_Bit(GPIOA->ODR, 5);
-						else if(num == 2) Macro_Clear_Bit(GPIOA->ODR, 6);
-						else if(num == 3) Macro_Clear_Bit(GPIOA->ODR, 7);
+						if(num == 1)      Macro_Set_Bit(GPIOA->ODR, 5);
+						else if(num == 2) Macro_Set_Bit(GPIOA->ODR, 6);
+						else if(num == 3) Macro_Set_Bit(GPIOA->ODR, 7);
 
 						led_state[num - 1] = 0;
 						printf("LED%d OFF\n", num);
@@ -436,24 +432,24 @@ void Main(void)
 
 				if(blink_on)
 				{
-					Macro_Set_Bit(GPIOA->ODR, 5);
-					Macro_Set_Bit(GPIOA->ODR, 6);
-					Macro_Set_Bit(GPIOA->ODR, 7);
-				}
-				else
-				{
 					Macro_Clear_Bit(GPIOA->ODR, 5);
 					Macro_Clear_Bit(GPIOA->ODR, 6);
 					Macro_Clear_Bit(GPIOA->ODR, 7);
+				}
+				else
+				{
+					Macro_Set_Bit(GPIOA->ODR, 5);
+					Macro_Set_Bit(GPIOA->ODR, 6);
+					Macro_Set_Bit(GPIOA->ODR, 7);
 				}
 
 				blink_remain--;
 
 				if(blink_remain == 0)
 				{
-					Macro_Clear_Bit(GPIOA->ODR, 5);
-					Macro_Clear_Bit(GPIOA->ODR, 6);
-					Macro_Clear_Bit(GPIOA->ODR, 7);
+					Macro_Set_Bit(GPIOA->ODR, 5);
+					Macro_Set_Bit(GPIOA->ODR, 6);
+					Macro_Set_Bit(GPIOA->ODR, 7);
 					led_state[0] = led_state[1] = led_state[2] = 0;
 				}
 			}
