@@ -34,7 +34,8 @@ extern volatile int TIM4_Expired;
 void TIM4_IRQHandler(void)
 {
 	// TIM4 Interrupt Pending Clear
+	Macro_Clear_Bit(TIM4->SR,0);
 	// NVIC Pending Clear
-	
+	NVIC_ClearPendingIRQ(30);
 	TIM4_Expired = 1;
 }
